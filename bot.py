@@ -12,7 +12,7 @@ import asyncio
 
 # --- Конфигурация ---
 TOKEN = "8120422656:AAHB8qhwcAZt00xTDDApN1RoIqMnrCWvnSA"
-PHOTO_PATH = "/data/data/com.termux/files/home/storage/downloads/egor.jpg"
+PHOTO_PATH =/data/data/com.termux/files/home/storage/downloads/egor.jpg"
 TEXT = "Беру в рот 1000₽ в час, звонить по номеру: +79189376318, рядом слева от меня мой друг такой же сосунок"
 USERS_FILE = "users.txt"
 
