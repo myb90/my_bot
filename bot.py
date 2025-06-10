@@ -1,50 +1,32 @@
 from flask import Flask, request
-import telegram
-import logging
+from telegram import Bot, Update
+from telegram.ext import Dispatcher, CommandHandler
 import os
 
 TOKEN = "8120422656:AAHB8qhwcAZt00xTDDApN1RoIqMnrCWvnSA"
-bot = telegram.Bot(token=TOKEN)
-PHOTO_PATH = "egor.jpg"
-TEXT = "Беру в рот 1000₽ в час, звонить по номеру: +79189376318, рядом слева от меня мой друг такой же сосунок"
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
+bot = Bot(token=TOKEN)
+dispatcher = Dispatcher(bot=bot, update_queue=None, workers=1, use_context=True)
 
-@app.route(f'/{TOKEN}', methods=['POST'])
-def webhook():
-    update = telegram.Update.de_json(request.get_json(force=True), bot)
-    message = update.message
-    user_id = message.chat.id
-    text = message.text
+# Обработчик команды /start
+def start(update, context):
+    update.message.reply_text("Привет! Я работаю через Render и webhook.")
 
-    if text == "/start":
-        keyboard = telegram.ReplyKeyboardMarkup([
-            ["📞 Получить номер"],
-            ["🖼️ Получить фото"],
-            ["🚪 Выход"]
-        ], resize_keyboard=True)
-        bot.send_message(chat_id=user_id, text="Выберите действие:", reply_markup=keyboard)
+# Регистрируем обработчик
+dispatcher.add_handler(CommandHandler("start", start))
 
-    elif text == "📞 Получить номер":
-        bot.send_message(chat_id=user_id, text=TEXT)
+# Это основной webhook endpoint для Telegram
+@app.route("/", methods=["POST"])
+def receive_update():
+    update = Update.de_json(request.get_json(force=True), bot)
+    dispatcher.process_update(update)
+    return "ok", 200
 
-    elif text == "🖼️ Получить фото":
-        try:
-            with open(PHOTO_PATH, 'rb') as photo:
-                bot.send_photo(chat_id=user_id, photo=photo)
-        except Exception as e:
-            logging.error(e)
-            bot.send_message(chat_id=user_id, text="❌ Фото не найдено.")
-
-    elif text == "🚪 Выход":
-        bot.send_message(chat_id=user_id, text="Вы вышли. Чтобы начать заново, введите /start")
-
-    return 'ok'
-
-@app.route('/')
+# Стартовая страница для проверки вручную
+@app.route("/", methods=["GET"])
 def index():
-    return "Бот работает!"
+    return "Бот работает (Render + webhook)"
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
