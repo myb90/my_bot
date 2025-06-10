@@ -3,7 +3,7 @@ from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackContext, MessageHandler, filters, CallbackQueryHandler
 
-TOKEN = 8120422656:AAHB8qhwcAZt00xTDDApN1RoIqMnrCWvnSA
+TOKEN = "8120422656:AAHB8qhwcAZt00xTDDApN1RoIqMnrCWvnSA"
 PHOTO_URL = "https://my-bot-hy4e.onrender.com/static/photo.jpg"  # Заменим позже, если нужно
 CONTACT_TEXT = "📞 Контакты:\nИмя: Иван\nТел: +7 999 123-45-67"
 
