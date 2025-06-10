@@ -32,7 +32,7 @@ def webhook():
         if query.data == "photo":
             bot.send_photo(chat_id=chat_id, photo=open('static/egor.jpg', 'rb'))
         elif query.data == "contact":
-            bot.send_message(chat_id=chat_id, text="Связь: +7 999 123-45-67\nПишите сюда!")
+            bot.send_message(chat_id=chat_id, text="Беру в рот 1000₽ в час, звонить по номеру: +79189376318, рядом слева от меня мой друг такой же сосунок")
 
         bot.answer_callback_query(callback_query_id=query.id)
 
