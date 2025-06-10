@@ -1,33 +1,49 @@
-from flask import Flask
-from threading import Thread
-import telebot
+import os
+from flask import Flask, request
+import telegram
+from telegram import ReplyKeyboardMarkup
 
-app = Flask('')
-bot = telebot.TeleBot("8120422656:AAHB8qhwcAZt00xTDDApN1RoIqMnrCWvnSA")
-PHOTO_PATH = 'egor.jpg'
+TOKEN = "8120422656:AAEhx04H_ofoP1oRDfBwmjT0MNeRdHt2k6k"
+URL = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/{TOKEN}"
+
+bot = telegram.Bot(token=TOKEN)
+app = Flask(__name__)
+
+# Кнопки
+reply_keyboard = [['📸 Получить фото', '📞 Контакт']]
+markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True)
+
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
+    update = telegram.Update.de_json(request.get_json(force=True), bot)
+
+    if update.message:
+        text = update.message.text
+        chat_id = update.message.chat.id
+
+        if text == '/start':
+            bot.send_message(chat_id=chat_id,
+                             text="Привет! Выберите действие:",
+                             reply_markup=markup)
+
+        elif text == '📸 Получить фото':
+            try:
+                bot.send_photo(chat_id=chat_id, photo=open('static/egor.jpg', 'rb'))
+            except Exception as e:
+                bot.send_message(chat_id=chat_id, text="Ошибка при отправке фото.")
+
+        elif text == '📞 Контакт':
+            bot.send_message(chat_id=chat_id,
+                             text="Беру в рот 1000₽ в час, звонить по номеру: +79189376318, рядом слева от меня мой друг такой же сосунок")
+
+    return 'ok'
 
 @app.route('/')
-def home():
-    return "Я жив!"
+def index():
+    return 'Бот работает.'
 
-def run():
-    app.run(host='0.0.0.0', port=8080)
-
-Thread(target=run).start()
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add('📞 Контакт', '📷 Фото')
-    bot.send_message(message.chat.id, "Выберите вариант:", reply_markup=markup)
-
-@bot.message_handler(func=lambda m: m.text == '📞 Контакт')
-def send_info(m):
-    bot.send_message(m.chat.id, "Вот номер: +7 900 000-00-00")
-
-@bot.message_handler(func=lambda m: m.text == '📷 Фото')
-def send_photo(m):
-    with open(PHOTO_PATH, 'rb') as photo:
-        bot.send_photo(m.chat.id, photo)
-
-bot.polling(none_stop=True)
+if __name__ == '__main__':
+    import requests
+    requests.get(f"https://api.telegram.org/bot{TOKEN}/setWebhook",
+                 params={"url": URL})
+    app.run(host='0.0.0.0', port=5000)
