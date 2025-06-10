@@ -1,37 +1,49 @@
+import os
 from flask import Flask, request
-from telegram import Update
-from telegram.ext import Application, CommandHandler
-import asyncio
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackContext, MessageHandler, filters, CallbackQueryHandler
 
-TOKEN = "8120422656:AAHB8qhwcAZt00xTDDApN1RoIqMnrCWvnSA"
-WEBHOOK_URL = "https://my-bot-hy4e.onrender.com"
+TOKEN = os.getenv("BOT_TOKEN")
+PHOTO_URL = "https://my-bot-hy4e.onrender.com/static/photo.jpg"  # Заменим позже, если нужно
+CONTACT_TEXT = "📞 Контакты:\nИмя: Иван\nТел: +7 999 123-45-67"
 
 app = Flask(__name__)
 application = Application.builder().token(TOKEN).build()
 
-# Команда /start
-async def start(update: Update, context):
-    await update.message.reply_text("Привет! Я работаю через Render и Webhook!")
+# === /start ===
+async def start(update: Update, context: CallbackContext):
+    keyboard = [
+        [InlineKeyboardButton("📷 Получить фото", callback_data="get_photo")],
+        [InlineKeyboardButton("📞 Контакт", callback_data="get_contact")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Выберите действие:", reply_markup=reply_markup)
 
-# Обработчик команды
-application.add_handler(CommandHandler("start", start))
+# === Обработка кнопок ===
+async def button(update: Update, context: CallbackContext):
+    query = update.callback_query
+    await query.answer()
 
-# Установка webhook
-async def set_webhook():
-    await application.bot.set_webhook(WEBHOOK_URL)
+    if query.data == "get_photo":
+        await query.message.reply_photo(PHOTO_URL)
+    elif query.data == "get_contact":
+        await query.message.reply_text(CONTACT_TEXT)
 
-# Обработка запросов Telegram
-@app.route("/", methods=["POST"])
-async def webhook():
+# === Flask Webhook endpoint ===
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)
-    await application.update_queue.put(update)
-    return "ok", 200
+    application.update_queue.put_nowait(update)
+    return "OK"
 
-# Проверка работоспособности
-@app.route("/", methods=["GET"])
+@app.route("/")
 def index():
-    return "Бот запущен и работает!"
+    return "Бот работает!"
 
+# === Регистрация хендлеров ===
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CallbackQueryHandler(button))
+
+# === Запуск приложения ===
 if __name__ == "__main__":
-    asyncio.run(set_webhook())
-    app.run(host="0.0.0.0", port=5000)
+    application.run_polling()
