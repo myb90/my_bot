@@ -3,7 +3,7 @@ from flask import Flask, request
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
-TOKEN = "8120422656:AAHB8qhwcAZt00xTDDApN1RoIqMnrCWvnSA"
+TOKEN = "8120422656:AAEhx04H_ofoP1oRDfBwmjT0MNeRdHt2k6k"
 URL = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/"
 
 bot = telegram.Bot(token=TOKEN)
