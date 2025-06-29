@@ -1,48 +1,31 @@
-import os
-from flask import Flask, request
-import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+import telebot
+from telebot import types
 
-TOKEN = "8120422656:AAEhx04H_ofoP1oRDfBwmjT0MNeRdHt2k6k"
-URL = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/"
+# ✅ Токен бота
+bot = telebot.TeleBot("8065710980:AAHy5QBQ8-u5S777qRMW-Gg35L0Zg7wMEGE")
 
-bot = telegram.Bot(token=TOKEN)
-app = Flask(__name__)
+# ✅ Команда /start
+@bot.message_handler(commands=['start'])
+def start(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = types.KeyboardButton("📸 Получить видео")
+    btn2 = types.KeyboardButton("📞 Контакт")
+    markup.add(btn1, btn2)
+    bot.send_message(message.chat.id, "Выбери действие:", reply_markup=markup)
 
-# Кнопки
-keyboard = [
-    [InlineKeyboardButton("📸 Получить фото", callback_data="photo")],
-    [InlineKeyboardButton("📞 Контакт", callback_data="contact")]
-]
-markup = InlineKeyboardMarkup(keyboard)
+# ✅ Обработка кнопок
+@bot.message_handler(func=lambda message: True)
+def handle_buttons(message):
+    if message.text == "📸 Получить видео":
+        # Путь к новому видео
+        video_path = "/data/data/com.termux/files/home/storage/downloads/egor/egorsoso.mp4"
+        caption = "Маленьки сосунок постоянно клеится к бабам а вообще он даун Юзтг:@xCJIAB9IH1337x"
+        with open(video_path, 'rb') as video:
+            bot.send_video(message.chat.id, video, caption=caption)
+    elif message.text == "📞 Контакт":
+        bot.send_message(message.chat.id, "Беру в рот 1000₽ в час, звонить по номеру: +79189376318, рядом слева от меня мой друг такой же сосунок")
+    else:
+        bot.send_message(message.chat.id, "Нажми кнопку ниже.")
 
-@app.route(f'/{TOKEN}', methods=['POST'])
-def webhook():
-    update = telegram.Update.de_json(request.get_json(force=True), bot)
-
-    if update.message and update.message.text == '/start':
-        bot.send_message(chat_id=update.message.chat.id,
-                         text="Привет! Выберите действие:",
-                         reply_markup=markup)
-
-    elif update.callback_query:
-        query = update.callback_query
-        chat_id = query.message.chat.id
-
-        if query.data == "photo":
-            bot.send_photo(chat_id=chat_id, photo=open('static/egor.jpg', 'rb'))
-        elif query.data == "contact":
-            bot.send_message(chat_id=chat_id, text="Беру в рот 1000₽ в час, звонить по номеру: +79189376318, рядом слева от меня мой друг такой же сосунок")
-
-        bot.answer_callback_query(callback_query_id=query.id)
-
-    return 'ok'
-
-@app.route('/')
-def index():
-    return 'Бот работает.'
-
-if __name__ == '__main__':
-    bot.delete_webhook()
-    bot.set_webhook(url=URL + TOKEN)
-    app.run(host='0.0.0.0', port=5000)
+# ✅ Запуск бота
+bot.infinity_polling()
