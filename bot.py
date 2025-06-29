@@ -14,7 +14,7 @@ def start(message):
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     if message.text == '📸 Получить фото':
-        video_path = '/data/data/com.termux/files/home/Download/egor/egorsoso.mp4'
+        video_path = '/storage/emulated/0/Download/egor/egorsoso.mp4'
         with open(video_path, 'rb') as video:
             bot.send_video(message.chat.id, video)
     elif message.text == '📞 Контакт':
